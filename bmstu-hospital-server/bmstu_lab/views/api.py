@@ -1,6 +1,11 @@
 from rest_framework import viewsets
 from ..serializers import *
 
+"""
+контроллер для лабы 3 это три файла views/api.py, urls/api.py, serializers.py
+вместо html страниц сервер в данном случае отправляет данные в формате json
+их удобнее читать компьюетру и также можно сделать мобильное приложение
+"""
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')

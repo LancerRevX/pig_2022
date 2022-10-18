@@ -41,6 +41,9 @@ export default defineComponent({
           doctor.speciality = await response.json()
           this.doctors.push(doctor)
         }
+        for (let i = 0; i < 5; i++) {
+          this.doctors = this.doctors.concat(this.doctors);
+        }
       } catch (error) {
         console.log('Get doctors error:', error)
       }

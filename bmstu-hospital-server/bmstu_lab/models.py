@@ -4,6 +4,17 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from os import path
 
+# ORM  (англ. Object-Relational Mapping, рус. объектно-реляционное отображение, или преобразование)
+
+
+# cвязывает классы Пайтон с базой данных SQLite
+# база данных нахоидтся в файле db.sqlite3
+
+# в этом файле находится МОДЕЛЬ, описанная на языке Пайтон
+
+# команда python manage.py makemigrations создаёт SQL код, который переносит данную модель в базу данных
+# то есть команда python manage.py migrate выполняет данную миграцию
+
 
 class Speciality(models.Model):
     name = models.CharField(max_length=32)
@@ -18,7 +29,7 @@ class Doctor(models.Model):
     last_name = models.CharField(max_length=32)
     patronymic = models.CharField(max_length=32)
     speciality = models.ForeignKey(Speciality, related_name='doctors', on_delete=models.RESTRICT)
-    photo = models.FileField(upload_to='static/photos/')
+    photo = models.FileField(upload_to='static/photos/', blank=True, null=True, default=None)
 
     @property
     def full_name(self):
