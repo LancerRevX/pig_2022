@@ -1,11 +1,13 @@
 <template>
-  <div class="doctor-card">
-    <img :src="doctor.photo">
+  <router-link class="doctor-card" :to="'/doctors/' + doctor.id">
+    <img v-if="doctor.photo" :src="doctor.photo">
+    <img v-else-if="doctor.gender == 1" src="@/assets/placeholder_male.jpg">
+    <img v-else src="@/assets/placeholder_female.jpg">
     <h3>Специализация</h3>
     <p>{{ doctor.speciality.name }}</p>
     <h3>ФИО</h3>
     <p>{{ [doctor.last_name, doctor.first_name, doctor.patronymic].join(' ') }}</p>
-  </div>
+  </router-link>
 </template>
 
 <script lang="ts">
@@ -27,10 +29,21 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   text-align: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .doctor-card img {
   width: auto;
   min-height: 100px;
+}
+
+.doctor-card:hover {
+  background-color: greenyellow;
+}
+
+.doctor-card:active {
+  background-color: green;
+  color: white;
 }
 </style>

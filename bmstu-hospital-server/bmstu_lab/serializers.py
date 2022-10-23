@@ -31,13 +31,15 @@ class SpecialitySerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Speciality
-        fields = ['id', 'url', 'name', 'doctors']
+        fields = ['id', 'url', 'name', 'doctors', 'description']
 
 
 class DoctorSerializer(serializers.HyperlinkedModelSerializer):
+    work_record = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Doctor
-        fields = ['id', 'url', 'user', 'speciality', 'last_name', 'first_name', 'patronymic', 'photo']
+        fields = ['id', 'url', 'user', 'speciality', 'last_name', 'first_name', 'patronymic', 'photo', 'work_record', 'gender']
 
 
 class PatientSerializer(serializers.HyperlinkedModelSerializer):

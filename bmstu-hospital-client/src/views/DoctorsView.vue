@@ -1,20 +1,6 @@
 <template>
   <div class="doctors-block">
     <h2>Список врачей</h2>
-    <!-- <table class="doctors-table">
-      <thead>
-        <tr>
-          <th>Специализация</th>
-          <th>ФИО</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="doctor in doctors" v-bind:key="doctor.id">
-          <td>{{ doctor.speciality.name }}</td>
-          <td>{{ [doctor.last_name, doctor.first_name, doctor.patronymic].join(' ') }}</td>
-        </tr>
-      </tbody>
-    </table> -->
     <div class="doctors-cards">
       <DoctorCard v-for="doctor in doctors" :key="doctor" :doctor="doctor"></DoctorCard>
     </div>
@@ -41,7 +27,7 @@ export default defineComponent({
           doctor.speciality = await response.json()
           this.doctors.push(doctor)
         }
-        for (let i = 0; i < 5; i++) {
+        while (this.doctors.length < 24) {
           this.doctors = this.doctors.concat(this.doctors);
         }
       } catch (error) {

@@ -18,6 +18,7 @@ from os import path
 
 class Speciality(models.Model):
     name = models.CharField(max_length=32)
+    description = models.TextField()
 
     def __str__(self):
         return self.name
@@ -30,6 +31,15 @@ class Doctor(models.Model):
     patronymic = models.CharField(max_length=32)
     speciality = models.ForeignKey(Speciality, related_name='doctors', on_delete=models.RESTRICT)
     photo = models.FileField(upload_to='static/photos/', blank=True, null=True, default=None)
+    hire_date = models.DateField()
+    gender = models.IntegerField(choices=[
+        (0, 'Женщина'),
+        (1, 'Мужчина')
+    ])
+
+    @property
+    def work_record(self):
+        return (datetime.now().date() - self.hire_date).days // 365
 
     @property
     def full_name(self):
