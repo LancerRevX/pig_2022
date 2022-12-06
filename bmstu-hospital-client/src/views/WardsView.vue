@@ -1,27 +1,28 @@
 <template>
   <div class="wards-block">
     <h2>Список палат</h2>
-    <table class="wards-table">
+    <LoadingIndicator :data-array="wards" :data-status="status" v-if="(wards.length == 0)"></LoadingIndicator>
+    <table class="wards-table" v-else>
       <thead>
         <tr>
           <th>Номер</th>
           <th>Кол-во мест</th>
-          <th>Занято мест</th>
-          <th>Пациенты</th>
+          <!-- <th v-if="userStore.user?.doctor">Занято мест</th>
+          <th v-if="userStore.user?.doctor">Пациенты</th> -->
         </tr>
       </thead>
       <tbody>
-        <tr v-for="ward in wards" :key="ward.id">
+        <tr v-for="ward in wards" :key="ward.number">
           <td>{{ ward.number }}</td>
           <td>{{ ward.capacity }}</td>
-          <td>{{ ward.patients.length }}</td>
-          <td>
+          <!-- <td v-if="userStore.user?.doctor">{{ ward.patients?.length }}</td>
+          <td v-if="userStore.user?.doctor">
             <table class="inner-table">
               <tr v-for="patient in ward.patients" :key="patient.id">
-                <td>{{ [patient.last_name, patient.first_name, patient.patronymic].join(' ') }}</td>  
+                <td>{{ patient.name }}</td>  
               </tr>
             </table>
-          </td>
+          </td> -->
         </tr>
       </tbody>
     </table>
@@ -29,32 +30,36 @@
 </template>
   
 <script lang="ts">
-import {defineComponent} from 'vue';
-  
+import {defineComponent} from 'vue'
+import { getWards, type Ward, ForbiddenError } from '@/myapi'
+import { DataStatus } from '@/dataStatus'
+import { userStore } from '@/userStore'
+import LoadingIndicator from '@/components/LoadingIndicator.vue'
+
 export default defineComponent({
   data: () => ({
-    wards: [] as any[]
+    status: DataStatus.Loading,
+    wards: [] as Ward[],
+    userStore: userStore()
   }),
   methods: {
     async getWards() {
+      this.status = DataStatus.Loading
       try {
-        let response = await fetch('http://127.0.0.1:8000/api/wards/', {
-          method: 'GET'
-        });
-        let wards = await response.json(); 
-        for (let ward of wards) {
-          for (let i = 0; i < ward.patients.length; i++) {
-            let response = await fetch(ward.patients[i])
-            let patient = await response.json();
-            ward.patients[i] = patient
-          }
-        }  
-        console.log(wards)
-        this.wards = wards
+        this.wards = await getWards()
+        this.status = DataStatus.Ready
       } catch (error) {
-        console.log(error)
+        if (error instanceof ForbiddenError) {
+          this.status = DataStatus.Forbidden
+        } else {
+          this.status = DataStatus.Error
+          console.log(error)
+        }
       }
     }
+  },
+  components: {
+    LoadingIndicator
   },
   created() {
     this.getWards()

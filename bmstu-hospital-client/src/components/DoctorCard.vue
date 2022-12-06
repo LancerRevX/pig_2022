@@ -6,16 +6,23 @@
     <h3>Специализация</h3>
     <p>{{ doctor.speciality.name }}</p>
     <h3>ФИО</h3>
-    <p>{{ [doctor.last_name, doctor.first_name, doctor.patronymic].join(' ') }}</p>
+    <p>{{ doctor.name }}</p>
+    <h3>Стоимость приёма</h3>
+    <p>{{ doctor.cost }} руб.</p>
   </router-link>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent} from 'vue'
+import type { Doctor } from "@/myapi"
+import type { PropType } from 'vue'
 
 export default defineComponent({
   props: {
-    doctor: Object as any
+    doctor: {
+      type: Object as PropType<Doctor>,
+      required: true
+    }
   }
 })
 </script>

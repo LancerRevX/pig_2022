@@ -1,8 +1,9 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from os import path
+import pytz
 
 # ORM  (англ. Object-Relational Mapping, рус. объектно-реляционное отображение, или преобразование)
 
@@ -25,13 +26,14 @@ class Speciality(models.Model):
 
 
 class Doctor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='doctor')
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
     patronymic = models.CharField(max_length=32)
     speciality = models.ForeignKey(Speciality, related_name='doctors', on_delete=models.RESTRICT)
     photo = models.FileField(upload_to='static/photos/', blank=True, null=True, default=None)
     hire_date = models.DateField()
+    cost = models.IntegerField()
     gender = models.IntegerField(choices=[
         (0, 'Женщина'),
         (1, 'Мужчина')
@@ -45,12 +47,25 @@ class Doctor(models.Model):
     def full_name(self):
         return f'{self.last_name} {self.first_name} {self.patronymic}'
 
+    def make_appointment(self, patient, datetime_):
+        # datetime_ = pytz.utc.localize(datetime_)
+        if datetime_ < datetime.now(timezone.utc) + timedelta(days=1):
+            return None
+        for other_appointment in Appointment.objects.filter(doctor=self, datetime__gt=datetime.now()):
+            if datetime_ > other_appointment.datetime - timedelta(minutes=30) and \
+                datetime_ < other_appointment.datetime + timedelta(minutes=30):
+                return None
+        appointment = Appointment(doctor=self, patient=patient, datetime=datetime_)
+        appointment.save()
+        return appointment
+
+
     def __str__(self):
         return f'{self.speciality} {self.full_name}'
 
 
 class Patient(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='patient')
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
     patronymic = models.CharField(max_length=32)
@@ -89,6 +104,15 @@ class Ward(models.Model):
 
     def __str__(self):
         return f'{self.number}'
+
+
+class Appointment(models.Model):
+    patient = models.ForeignKey(Patient, related_name='appointments', on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, related_name='appointments', on_delete=models.CASCADE)
+    datetime = models.DateTimeField()
+
+    def __str__(self):
+        return f'{self.patient} => {self.doctor}, {self.datetime.strftime("%d.%m.%Y %H:%M")}'
 
 
 class Case(models.Model):

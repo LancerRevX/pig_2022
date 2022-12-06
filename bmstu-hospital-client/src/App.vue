@@ -1,10 +1,20 @@
-<script setup lang="ts">
+<script lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import {defineComponent} from 'vue'
+import UserCard from './components/UserCard.vue'
+
+export default defineComponent({
+  components: {
+    RouterLink, RouterView, UserCard
+  }
+})
 </script>
 
 <template>
   <header>
     <h1>Моя больница</h1>
+
+    <UserCard></UserCard>
 
     <nav> 
       <RouterLink to="/">Главная</RouterLink>
@@ -12,7 +22,8 @@ import { RouterLink, RouterView } from 'vue-router'
       <RouterLink to="/patients">Список пациентов</RouterLink>
       <RouterLink to="/wards">Список палат</RouterLink>
       <RouterLink to="/cases">История болезней</RouterLink>
-    </nav>
+      <RouterLink to="/appointments">Записи</RouterLink>
+    </nav>    
   </header>
 
   <RouterView />
@@ -22,6 +33,8 @@ import { RouterLink, RouterView } from 'vue-router'
 
 header {
   margin-bottom: 1rem;
+  display: grid;
+  grid-template: 1fr auto / 1fr auto;
 }
 
 nav {
@@ -30,6 +43,7 @@ nav {
   column-gap: 1em;
   border-collapse: collapse;
   row-gap: 1em;
+  grid-column: span 2;
   /* border-left: 1px solid black; */
 }
 

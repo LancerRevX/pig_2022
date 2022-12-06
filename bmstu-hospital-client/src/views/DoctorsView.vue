@@ -1,44 +1,62 @@
 <template>
   <div class="doctors-block">
     <h2>Список врачей</h2>
-    <div class="doctors-cards">
-      <DoctorCard v-for="doctor in doctors" :key="doctor" :doctor="doctor"></DoctorCard>
+    <span>Специальность</span>
+    <select v-model="specialityFilter">
+      <option value="undefined">Любая</option>
+      <option v-for="speciality in specialities" :key="speciality.id" :value="speciality">
+        {{ speciality.name }}
+      </option>
+    </select>
+    <br>
+    <span>Стоимость приема</span>
+    <input type="number" placeholder="От" v-model="minCostFilter">
+    <input type="number" placeholder="До" v-model="maxCostFilter">
+    <div class="doctors-cards" v-if="doctors.length">
+      <DoctorCard v-for="doctor in doctors" :key="doctor.id" :doctor="doctor"></DoctorCard>
     </div>
+    <p v-else>Список пуст.</p>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent} from 'vue'
 import DoctorCard from '@/components/DoctorCard.vue'
+import { type Doctor, type Speciality, getDoctors, getSpecialities } from '@/myapi/types'
 
 export default defineComponent({
   data: () => ({
-    doctors: [] as any[]
+    doctors: [] as Doctor[],
+    specialities: [] as Speciality[],
+    specialityFilter: undefined as Speciality | undefined,
+    minCostFilter: undefined as number | undefined,
+    maxCostFilter: undefined as number | undefined,
   }),
-  methods: {
-    async getDoctors() {
-      try {
-        let response = await fetch('http://127.0.0.1:8000/api/doctors/', {
-          method: 'GET',
-        })
-        let doctors = await response.json()
-        for (let doctor of doctors) {
-          response = await fetch(doctor.speciality)
-          doctor.speciality = await response.json()
-          this.doctors.push(doctor)
-        }
-        while (this.doctors.length < 24) {
-          this.doctors = this.doctors.concat(this.doctors);
-        }
-      } catch (error) {
-        console.log('Get doctors error:', error)
-      }
-    }
-  },
   components: {
     DoctorCard
   },
-  created() {
+  methods: {
+    async getDoctors() {
+      this.doctors = await getDoctors({
+        speciality: this.specialityFilter,
+        minCost: this.minCostFilter,
+        maxCost: this.maxCostFilter
+      }, false)
+    }
+  },
+  watch: {
+    specialityFilter(newFilter) {
+      this.getDoctors()
+    },
+    minCostFilter(newFilter) {
+      this.getDoctors()
+    },
+    maxCostFilter(newFilter) {
+      this.getDoctors()
+    }
+  },
+  async created() {
+    this.specialities = await getSpecialities(false)
     this.getDoctors()
   }
 })

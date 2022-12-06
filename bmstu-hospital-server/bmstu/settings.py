@@ -25,6 +25,8 @@ SECRET_KEY = 'django-insecure-8lb*h-x&g)czc_zh=gd&9i3d$%86+xh4(tzz@-19ghc3x2oo%p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+USE_TZ = True
+
 ALLOWED_HOSTS = []
 
 
@@ -38,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'bmstu_lab.apps.BmstuLabConfig'
+    'drf_yasg',
+    'django_filters',
+    'bmstu_lab.apps.BmstuLabConfig',
 ]
 
 MIDDLEWARE = [
@@ -112,7 +116,11 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication'
+    ]
+}
 
 
 # Static files (CSS, JavaScript, Images)
@@ -128,3 +136,6 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:5173', 'http://192.168.1.72']
+CSRF_COOKIE_SAMESITE = 'Lax'

@@ -13,7 +13,10 @@ router.register('doctors', DoctorViewSet)
 router.register('patients', PatientViewSet)
 router.register('wards', WardViewSet)
 router.register('cases', CaseViewSet)
+router.register('appointments', AppointmentViewSet)
+router.register('login', LoginViewSet, basename='login')
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('logout/', LogoutView.as_view())
 ]

@@ -1,0 +1,1 @@
+.doctor-block{display:grid;grid-template:auto 1fr / auto 1fr;gap:1em}.doctor-block h2{grid-column:span 2}

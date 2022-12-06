@@ -1,7 +1,8 @@
 <template>
   <div class="wards-block">
     <h2>Список палат</h2>
-    <table class="wards-table">
+      <LoadingIndicator :data-array="cases" :data-status="status" v-if="(cases.length == 0)"></LoadingIndicator>
+      <table class="cases-table" v-else>
       <thead>
         <tr>
           <th>Дата поступления</th>
@@ -15,12 +16,12 @@
       </thead>
       <tbody>
         <tr v-for="case_ in cases" :key="case_.id">
-          <td>{{ case_.start_date }}</td>
+          <td>{{ case_.startDate.toLocaleString() }}</td>
           <td>{{ case_.active ? 'Нет' : 'Да' }}</td>
-          <td>{{ case_.end_date || 'Нет' }}</td>
-          <td>{{ [case_.patient.last_name, case_.patient.first_name, case_.patient.patronymic].join(' ') }}</td>
-          <td>{{ [case_.doctor.last_name, case_.doctor.first_name, case_.doctor.patronymic].join(' ') }}</td>
-          <td>{{ case_.ward ? case_.ward.number : 'Нет' }}</td>
+          <td>{{ case_.endDate?.toLocaleString() || 'Нет' }}</td>
+          <td>{{ case_.patient.name }}</td>
+          <td>{{ case_.doctor.name }}</td>
+          <td>{{ case_.wardNumber }}</td>
           <td>{{ case_.description }}</td>
         </tr>
       </tbody>
@@ -29,29 +30,39 @@
 </template>
   
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent} from 'vue'
+import { DataStatus } from '@/dataStatus'
+import LoadingIndicator from '@/components/LoadingIndicator.vue'
+import {type Case, getCases, ForbiddenError} from '@/myapi'
+import { userStore } from '@/userStore'
   
 export default defineComponent({
   data: () => ({
-    cases: [] as any[]
+    status: DataStatus.Loading,
+    cases: [] as Case[]
   }),
   methods: {
     async getCases() {
       try {
-        let response = await fetch('http://127.0.0.1:8000/api/cases/', {
-          method: 'GET'
-        });
-        let cases = await response.json(); 
-        for (let case_ of cases) {
-          case_.patient = await (await fetch(case_.patient)).json()
-          case_.doctor = await (await fetch(case_.doctor)).json()
-          case_.ward = await (await fetch(case_.ward)).json()
-        }
-        this.cases = cases
+        this.cases = await getCases()
+        this.status = DataStatus.Ready
       } catch (error) {
-        console.log(error)
+        if (error instanceof ForbiddenError) {
+          this.status = DataStatus.Forbidden
+        } else {
+          this.status = DataStatus.Error
+          console.log(error)
+        }
       }
     }
+  },
+  watch: {
+    'userStore.user'() {
+      this.getCases()
+    }
+  },
+  components: {
+    LoadingIndicator
   },
   created() {
     this.getCases()

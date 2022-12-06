@@ -16,17 +16,29 @@ REST - стиль написания API, набор соглашений о т�
 """
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        fields = ['username', 'password']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    groups = serializers.SlugRelatedField(slug_field='name', many=True, read_only=True)
+    patient = serializers.PrimaryKeyRelatedField(read_only=True)
+    doctor = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'url', 'username']
+        fields = ['id', 'url', 'username', 'groups', 'patient', 'doctor']
 
 
-class SpecialitySerializer(serializers.HyperlinkedModelSerializer):
-    doctors = serializers.HyperlinkedRelatedField(
+class SpecialitySerializer(serializers.ModelSerializer):
+    doctors = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True,
-        view_name='doctor-detail'
+        # view_name='Doctor'
     )
 
     class Meta:
@@ -34,27 +46,31 @@ class SpecialitySerializer(serializers.HyperlinkedModelSerializer):
         fields = ['id', 'url', 'name', 'doctors', 'description']
 
 
-class DoctorSerializer(serializers.HyperlinkedModelSerializer):
+class DoctorSerializer(serializers.ModelSerializer):
     work_record = serializers.IntegerField(read_only=True)
+    full_name = serializers.CharField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    # url = serializers.HyperlinkedIdentityField(view_name='Doctor')
 
     class Meta:
         model = Doctor
-        fields = ['id', 'url', 'user', 'speciality', 'last_name', 'first_name', 'patronymic', 'photo', 'work_record', 'gender']
+        fields = ['id', 'url', 'user', 'speciality', 'last_name', 'first_name', 'patronymic', 'full_name', 'photo', 'work_record', 'gender', 'cost']
 
 
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     age = serializers.IntegerField(read_only=True)
+    full_name = serializers.CharField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Patient
-        fields = ['id', 'url', 'user', 'first_name', 'last_name', 'patronymic', 'birth_date', 'gender', 'age']
+        fields = ['id', 'url', 'user', 'first_name', 'last_name', 'patronymic', 'full_name', 'birth_date', 'gender', 'age']
 
 
-class WardsSerializer(serializers.HyperlinkedModelSerializer):
-    patients = serializers.HyperlinkedRelatedField(
+class WardsSerializer(serializers.ModelSerializer):
+    patients = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True,
-        view_name='patient-detail'
     )
 
     class Meta:
@@ -62,7 +78,24 @@ class WardsSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['id', 'url', 'number', 'capacity', 'patients']
 
 
-class CaseSerializer(serializers.HyperlinkedModelSerializer):
+class WardInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ward
+        fields = ['id', 'number', 'capacity']
+
+
+class CaseSerializer(serializers.ModelSerializer):
+    # patient = serializers.PrimaryKeyRelatedField(read_only=True)
+    # doctor = serializers.PrimaryKeyRelatedField(read_only=True)
+    # ward = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = Case
-        fields = ['patient', 'doctor', 'ward', 'start_date', 'end_date', 'active', 'description']
+        fields = ['id', 'patient', 'doctor', 'ward', 'start_date', 'end_date', 'active', 'description']
+
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Appointment
+        fields = ['id', 'url', 'patient', 'doctor', 'datetime']
