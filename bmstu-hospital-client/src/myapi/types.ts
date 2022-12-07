@@ -69,7 +69,8 @@ WardsApi
 } from "../api"
 
 import {getCsrfToken} from '@/csrf'
-import { ForbiddenError } from "./errors"
+import { ForbiddenError, UsernameTaken } from "./errors"
+import * as errors from './errors'
 
 const SERVER = 'http://127.0.0.1:8000/api/'
 
@@ -116,6 +117,41 @@ export async function login(username?: string, password?: string): Promise<User 
     return userFromRaw(json)
   } else {
     return null
+  }
+}
+
+export interface SignupParams {
+  username: string,
+  password: string,
+  password_repeat: string,
+  first_name: string,
+  last_name: string,
+  patronymic: string,
+  birth_date: Date,
+  gender: number
+}
+
+export async function signup(params: SignupParams) {
+  let response = await fetch(SERVER + 'signup/', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCsrfToken(),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(params)
+  })
+  switch (response.status) {
+    case 200:
+      return true
+    case 400:
+      throw new errors.BadRequest
+    case 403:
+      throw new UsernameTaken
+    case 500:
+      throw new errors.ServerError
+    default:
+      throw new errors.UnknownError
   }
 }
 

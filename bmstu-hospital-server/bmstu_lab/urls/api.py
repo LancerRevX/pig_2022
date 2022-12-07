@@ -18,5 +18,6 @@ router.register('login', LoginViewSet, basename='login')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('logout/', LogoutView.as_view())
+    path('logout/', LogoutView.as_view()),
+    path('signup/', PatientSignupView.as_view())
 ]

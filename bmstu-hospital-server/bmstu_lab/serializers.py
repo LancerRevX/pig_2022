@@ -24,6 +24,17 @@ class LoginSerializer(serializers.Serializer):
         fields = ['username', 'password']
 
 
+class PatientSignupSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    password_repeat = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Patient
+        fields = ['username', 'password', 'password_repeat',
+                  'first_name', 'last_name', 'patronymic', 'birth_date', 'gender']
+
+
 class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(slug_field='name', many=True, read_only=True)
     patient = serializers.PrimaryKeyRelatedField(read_only=True)

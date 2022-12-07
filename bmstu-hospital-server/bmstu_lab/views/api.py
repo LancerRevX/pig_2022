@@ -9,6 +9,7 @@ from django.contrib.auth.models import AnonymousUser
 from datetime import datetime, timezone
 from ..serializers import *
 from ..permissions import *
+from django.contrib.auth.models import Group
 
 """
 контроллер для лабы 3 это три файла views/api.py, urls/api.py, serializers.py
@@ -42,6 +43,35 @@ class LoginViewSet(viewsets.GenericViewSet):
                 return Response(status=403, data='Invalid username or password')
         else:
             return Response(status=400, data='Username and password required')
+
+
+class PatientSignupView(views.APIView):
+    permission_classes = [AllowAny]
+    def post(self, request: Request):
+        serializer = PatientSignupSerializer(data=request.data)
+        if serializer.is_valid():
+            signup_data = serializer.validated_data
+            if signup_data['password'] != signup_data['password_repeat']:
+                return Response('Passwords do not match!', 400)
+            if User.objects.filter(username=signup_data['username']).exists():
+                return Response(f'Username {signup_data["username"]} is already taken!', 403)
+            new_user = User.objects.create_user(signup_data['username'], None, signup_data['password'])
+            patients_group = Group.objects.filter(name='patients').get()
+            patients_group.user_set.add(new_user)
+            new_user.save()
+            new_patient = Patient(
+                first_name = signup_data['first_name'],
+                last_name = signup_data['last_name'],
+                patronymic = signup_data['patronymic'],
+                birth_date = signup_data['birth_date'],
+                gender = signup_data['gender'],
+                user = new_user
+            )
+            new_patient.save()
+            return Response('Successfully created a new patient!', 200)
+        else:
+            missing_fields = list(serializer.errors.keys())
+            return Response(f'The following fields are required: {missing_fields}', 400)
 
 
 class LogoutView(views.APIView):
@@ -110,7 +140,7 @@ class CaseViewSet(viewsets.ModelViewSet):
     permission_classes = [CasePermission]
 
     def list(self, request, *args, **kwargs):
-        if hasattr(request.user, 'patient'):
+        if request.user.groups.filter(name='patients').exists():
             queryset = Case.objects.filter(patient=request.user.patient)
         else:
             queryset = Case.objects.all()
@@ -126,7 +156,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.groups.filter(name='patients'):
+        if user.groups.filter(name='patients').exists():
             queryset = Appointment.objects.filter(patient=user.patient)
         else:
             queryset = Appointment.objects.all()

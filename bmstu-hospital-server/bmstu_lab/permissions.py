@@ -75,6 +75,8 @@ class CasePermission(BasePermission):
             return True
         elif request.user.groups.filter(name='doctors').exists() and view.action in ['list', 'retrieve', 'update', 'partial_update']:
             return True
+        elif request.user.groups.filter(name='patients').exists() and view.action == 'list':
+            return True
         else:
             return False
 

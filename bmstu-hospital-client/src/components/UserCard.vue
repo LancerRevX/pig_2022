@@ -4,6 +4,7 @@
     <input type="text" v-model="username" placeholder="Username">
     <input type="password" v-model="password" placeholder="Password">
     <button @click="login()">Войти в систему</button>
+    <RouterLink to="/signup"><button>Регистрация</button></RouterLink>
   </div>
   <div v-else class="user-card">
     <span>{{ user.username }}&nbsp;</span>
@@ -19,6 +20,7 @@ import { login, logout } from '@/myapi/types'
 import type { Doctor } from '@/myapi/types'
 import type { PropType } from 'vue'
 import { userStore } from '@/userStore'
+import { RouterLink } from 'vue-router'
 
 export default defineComponent({
   data: () => ({
@@ -47,6 +49,9 @@ export default defineComponent({
   },
   async created() {
     this.userStore.user = await login()
+  },
+  components: {
+    RouterLink
   }
 })
 </script>
