@@ -30,6 +30,15 @@ export interface AppointmentsDeleteRequest {
     id: number;
 }
 
+export interface AppointmentsListRequest {
+    datetime?: string;
+    status?: string;
+    patient?: string;
+    doctor?: string;
+    datetimeAfter?: string;
+    datetimeBefore?: string;
+}
+
 export interface AppointmentsPartialUpdateRequest {
     id: number;
     data: Appointment;
@@ -115,8 +124,32 @@ export class AppointmentsApi extends runtime.BaseAPI {
 
     /**
      */
-    async appointmentsListRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Appointment>>> {
+    async appointmentsListRaw(requestParameters: AppointmentsListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Appointment>>> {
         const queryParameters: any = {};
+
+        if (requestParameters.datetime !== undefined) {
+            queryParameters['datetime'] = requestParameters.datetime;
+        }
+
+        if (requestParameters.status !== undefined) {
+            queryParameters['status'] = requestParameters.status;
+        }
+
+        if (requestParameters.patient !== undefined) {
+            queryParameters['patient'] = requestParameters.patient;
+        }
+
+        if (requestParameters.doctor !== undefined) {
+            queryParameters['doctor'] = requestParameters.doctor;
+        }
+
+        if (requestParameters.datetimeAfter !== undefined) {
+            queryParameters['datetime_after'] = requestParameters.datetimeAfter;
+        }
+
+        if (requestParameters.datetimeBefore !== undefined) {
+            queryParameters['datetime_before'] = requestParameters.datetimeBefore;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -135,8 +168,8 @@ export class AppointmentsApi extends runtime.BaseAPI {
 
     /**
      */
-    async appointmentsList(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Appointment>> {
-        const response = await this.appointmentsListRaw(initOverrides);
+    async appointmentsList(requestParameters: AppointmentsListRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Appointment>> {
+        const response = await this.appointmentsListRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -30,13 +30,10 @@
 
 <script lang="ts">
 import {defineComponent, inject} from 'vue'
-import { login, logout } from '@/myapi/types'
-import type { Doctor } from '@/myapi/types'
+import { login, logout, type Doctor, type SignupParams, signup } from '@/myapi'
 import type { PropType } from 'vue'
 import { userStore } from '@/userStore'
 import { RouterLink } from 'vue-router'
-import type { SignupParams } from '@/myapi/types'
-import { signup } from '@/myapi/types'
 import * as errors from '@/myapi/errors'
 
 export default defineComponent({

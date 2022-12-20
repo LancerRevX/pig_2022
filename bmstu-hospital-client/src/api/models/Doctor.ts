@@ -36,7 +36,7 @@ export interface Doctor {
      * @type {number}
      * @memberof Doctor
      */
-    readonly user?: number;
+    user: number;
     /**
      * 
      * @type {number}
@@ -98,6 +98,7 @@ export interface Doctor {
  */
 export function instanceOfDoctor(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "user" in value;
     isInstance = isInstance && "speciality" in value;
     isInstance = isInstance && "lastName" in value;
     isInstance = isInstance && "firstName" in value;
@@ -120,7 +121,7 @@ export function DoctorFromJSONTyped(json: any, ignoreDiscriminator: boolean): Do
         
         'id': !exists(json, 'id') ? undefined : json['id'],
         'url': !exists(json, 'url') ? undefined : json['url'],
-        'user': !exists(json, 'user') ? undefined : json['user'],
+        'user': json['user'],
         'speciality': json['speciality'],
         'lastName': json['last_name'],
         'firstName': json['first_name'],
@@ -142,6 +143,7 @@ export function DoctorToJSON(value?: Doctor | null): any {
     }
     return {
         
+        'user': value.user,
         'speciality': value.speciality,
         'last_name': value.lastName,
         'first_name': value.firstName,

@@ -2,10 +2,19 @@
 import { RouterLink, RouterView } from 'vue-router'
 import {defineComponent} from 'vue'
 import UserCard from './components/UserCard.vue'
+import { userStore } from './userStore'
 
 export default defineComponent({
+  data: () => ({
+    userStore: userStore()
+  }),
   components: {
     RouterLink, RouterView, UserCard
+  },
+  computed: {
+    // user() {
+    //   return this.userStore.user
+    // }
   }
 })
 </script>
@@ -23,18 +32,24 @@ export default defineComponent({
       <RouterLink to="/wards">Список палат</RouterLink>
       <RouterLink to="/cases">История болезней</RouterLink>
       <RouterLink to="/appointments">Записи</RouterLink>
-    </nav>    
+    </nav>
+    <nav v-if="userStore.user?.manager">
+      <span>Инструменты менеджера:</span>
+      <RouterLink to="/manager/create-doctor">Добавить врача</RouterLink>
+      <RouterLink to="/manager/appointments">Редактировать записи</RouterLink>
+    </nav>
   </header>
 
   <RouterView />
 </template>
 
-<style>
+<style scoped>
 
 header {
   margin-bottom: 1rem;
   display: grid;
   grid-template: 1fr auto / 1fr auto;
+  row-gap: 1em;
 }
 
 nav {

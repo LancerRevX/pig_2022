@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from os import path
 import pytz
 
+
 # ORM  (англ. Object-Relational Mapping, рус. объектно-реляционное отображение, или преобразование)
 
 
@@ -15,6 +16,17 @@ import pytz
 
 # команда python manage.py makemigrations создаёт SQL код, который переносит данную модель в базу данных
 # то есть команда python manage.py migrate выполняет данную миграцию
+
+
+class Manager(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='manager')
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+    patronymic = models.CharField(max_length=32)
+
+    @property
+    def full_name(self):
+        return f'{self.last_name} {self.first_name} {self.patronymic}'
 
 
 class Speciality(models.Model):
@@ -32,7 +44,7 @@ class Doctor(models.Model):
     patronymic = models.CharField(max_length=32)
     speciality = models.ForeignKey(Speciality, related_name='doctors', on_delete=models.RESTRICT)
     photo = models.FileField(upload_to='static/photos/', blank=True, null=True, default=None)
-    hire_date = models.DateField()
+    hire_date = models.DateField(auto_now_add=True)
     cost = models.IntegerField()
     gender = models.IntegerField(choices=[
         (0, 'Женщина'),
@@ -48,17 +60,19 @@ class Doctor(models.Model):
         return f'{self.last_name} {self.first_name} {self.patronymic}'
 
     def make_appointment(self, patient, datetime_):
-        # datetime_ = pytz.utc.localize(datetime_)
+        now = datetime.now()
         if datetime_ < datetime.now(timezone.utc) + timedelta(days=1):
             return None
-        for other_appointment in Appointment.objects.filter(doctor=self, datetime__gt=datetime.now()):
-            if datetime_ > other_appointment.datetime - timedelta(minutes=30) and \
-                datetime_ < other_appointment.datetime + timedelta(minutes=30):
-                return None
+        if Appointment.objects.filter(
+            doctor=self,
+            datetime__gt=now - timedelta(minutes=30),
+            datetime__lt=now + timedelta(minutes=30),
+            status=Appointment.SCHEDULED
+        ).exists():
+            return None
         appointment = Appointment(doctor=self, patient=patient, datetime=datetime_)
         appointment.save()
         return appointment
-
 
     def __str__(self):
         return f'{self.speciality} {self.full_name}'
@@ -107,9 +121,20 @@ class Ward(models.Model):
 
 
 class Appointment(models.Model):
+    SCHEDULED = 0
+    DONE = 1
+    CANCELLED = 2
+    DIDNT_COME = 3
+    statusChoices = [
+        (SCHEDULED, 'Назначен'),
+        (DONE, 'Проведён'),
+        (CANCELLED, 'Отменён'),
+        (DIDNT_COME, 'Пациент не пришёл')
+    ]
     patient = models.ForeignKey(Patient, related_name='appointments', on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, related_name='appointments', on_delete=models.CASCADE)
     datetime = models.DateTimeField()
+    status = models.IntegerField(choices=statusChoices, default=SCHEDULED)
 
     def __str__(self):
         return f'{self.patient} => {self.doctor}, {self.datetime.strftime("%d.%m.%Y %H:%M")}'

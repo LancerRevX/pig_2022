@@ -3,21 +3,18 @@
     <span>Анонимный пользователь</span>
     <input type="text" v-model="username" placeholder="Username">
     <input type="password" v-model="password" placeholder="Password">
-    <button @click="login()">Войти в систему</button>
+    <input @click="login()" type="submit" value="Войти в систему">
     <RouterLink to="/signup"><button>Регистрация</button></RouterLink>
   </div>
   <div v-else class="user-card">
-    <span>{{ user.username }}&nbsp;</span>
-    <span v-if="user.doctor">{{ user.doctor.name }} - {{ user.doctor.speciality.name }}&nbsp;</span>
-    <span v-else-if="user.patient">{{ user.patient.name }} - пациент&nbsp;</span>
+    <span>{{ userName }} - {{ userRole }}&nbsp;</span>
     <button @click="logout()">Выйти</button>
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent, inject} from 'vue'
-import { login, logout } from '@/myapi/types'
-import type { Doctor } from '@/myapi/types'
+import { login, logout, type Doctor} from '@/myapi'
 import type { PropType } from 'vue'
 import { userStore } from '@/userStore'
 import { RouterLink } from 'vue-router'
@@ -45,6 +42,34 @@ export default defineComponent({
   computed: {
     user() {
       return this.userStore.user
+    },
+    userName() {
+      if (this.user) {
+        if (this.user.patient) {
+          return this.user.patient.name
+        }
+        if (this.user.doctor) {
+          return this.user.doctor.name
+        }
+        if (this.user.manager) {
+          return this.user.manager.name
+        }
+      }
+      return ''
+    },
+    userRole() {
+      if (this.user) {
+        if (this.user.patient) {
+          return 'пациент'
+        } else if (this.user.doctor) {
+          return this.user.doctor.speciality.name
+        } else if (this.user.manager) {
+          return 'менеджер'
+        } else {
+          return 'без прав'
+        }
+      }
+      return ''
     }
   },
   async created() {

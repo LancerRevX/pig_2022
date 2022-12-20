@@ -39,10 +39,19 @@ class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(slug_field='name', many=True, read_only=True)
     patient = serializers.PrimaryKeyRelatedField(read_only=True)
     doctor = serializers.PrimaryKeyRelatedField(read_only=True)
+    manager = serializers.PrimaryKeyRelatedField(read_only=True)
+    password = serializers.CharField(write_only=True)
+    username = serializers.CharField()
 
     class Meta:
         model = User
-        fields = ['id', 'url', 'username', 'groups', 'patient', 'doctor']
+        fields = ['id', 'url', 'username', 'groups', 'patient', 'doctor', 'manager', 'password']
+
+
+class ManagerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Manager
+        fields = ['id', 'user', 'full_name']
 
 
 class SpecialitySerializer(serializers.ModelSerializer):
@@ -60,7 +69,6 @@ class SpecialitySerializer(serializers.ModelSerializer):
 class DoctorSerializer(serializers.ModelSerializer):
     work_record = serializers.IntegerField(read_only=True)
     full_name = serializers.CharField(read_only=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
     # url = serializers.HyperlinkedIdentityField(view_name='Doctor')
 
     class Meta:
@@ -109,4 +117,4 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'url', 'patient', 'doctor', 'datetime']
+        fields = ['id', 'url', 'patient', 'doctor', 'datetime', 'status']

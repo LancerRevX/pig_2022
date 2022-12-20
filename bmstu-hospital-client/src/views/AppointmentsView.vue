@@ -9,6 +9,7 @@
           <th>Пациент</th>
           <th>Врач</th>
           <th>Дата и время</th>
+          <th>Статус</th>
           <th>Управление</th>
         </tr>
       </thead>
@@ -23,7 +24,13 @@
           </td>
           <td>{{ appointment.datetime.toLocaleString() }}</td>
           <td>
-            <button @click="deleteAppointment(appointment)">Удалить</button>
+            {{ appointment.status.name }}
+          </td>
+          <td>
+            <button 
+              @click="cancelAppointment(appointment)"
+              v-if="appointment.status.value == 0"
+            >Отменить</button>
           </td>
         </tr>
       </tbody>
@@ -36,22 +43,25 @@ import {defineComponent} from 'vue'
 import { DataStatus } from '@/dataStatus'
 import { userStore } from '@/userStore'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
-import {getAppointments, deleteAppointment, type Appointment, ForbiddenError} from '@/myapi'
+import {getAppointments, deleteAppointment, type Appointment, type AppointmentStatus, ForbiddenError, getAppointmentStatuses} from '@/myapi'
 
 export default defineComponent({
   data: () => ({
     status: DataStatus.Loading,
     appointments: [] as Appointment[],
+    appointmentStatuses: [] as AppointmentStatus[],
     userStore: userStore()
   }),
   methods: {
     async deleteAppointment(appointment: Appointment) {
       await deleteAppointment(appointment)
-      this.getAppointments()
+      this.getData()
     },
-    async getAppointments() {
+    async getData() {
+      this.appointmentStatuses = []
       this.appointments = []
       try {
+        this.appointmentStatuses = await getAppointmentStatuses()
         this.appointments = await getAppointments()
         this.status = DataStatus.Ready
       } catch (error) {
@@ -62,18 +72,22 @@ export default defineComponent({
           console.log(error)
         }
       }
+    },
+    async cancelAppointment(appointment: Appointment) {
+      await deleteAppointment(appointment)
+      this.getData()
     }
   },
   watch: {
     'userStore.user'() {
-      this.getAppointments()
+      this.getData()
     }
   },
   components: {
     LoadingIndicator
   },
   created() {
-    this.getAppointments()
+    this.getData()
   }
 })
   

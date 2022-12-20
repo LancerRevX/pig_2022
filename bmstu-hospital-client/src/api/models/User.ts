@@ -32,7 +32,7 @@ export interface User {
      */
     readonly url?: string;
     /**
-     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     * 
      * @type {string}
      * @memberof User
      */
@@ -55,6 +55,18 @@ export interface User {
      * @memberof User
      */
     readonly doctor?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    readonly manager?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    password: string;
 }
 
 /**
@@ -63,6 +75,7 @@ export interface User {
 export function instanceOfUser(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "username" in value;
+    isInstance = isInstance && "password" in value;
 
     return isInstance;
 }
@@ -83,6 +96,8 @@ export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User
         'groups': !exists(json, 'groups') ? undefined : json['groups'],
         'patient': !exists(json, 'patient') ? undefined : json['patient'],
         'doctor': !exists(json, 'doctor') ? undefined : json['doctor'],
+        'manager': !exists(json, 'manager') ? undefined : json['manager'],
+        'password': json['password'],
     };
 }
 
@@ -96,6 +111,7 @@ export function UserToJSON(value?: User | null): any {
     return {
         
         'username': value.username,
+        'password': value.password,
     };
 }
 

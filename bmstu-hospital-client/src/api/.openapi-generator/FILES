@@ -3,7 +3,9 @@ apis/CasesApi.ts
 apis/DoctorsApi.ts
 apis/LoginApi.ts
 apis/LogoutApi.ts
+apis/ManagersApi.ts
 apis/PatientsApi.ts
+apis/SignupApi.ts
 apis/SpecialitiesApi.ts
 apis/UsersApi.ts
 apis/WardsApi.ts
@@ -13,6 +15,7 @@ models/Appointment.ts
 models/Case.ts
 models/Doctor.ts
 models/Login.ts
+models/Manager.ts
 models/Patient.ts
 models/Speciality.ts
 models/User.ts

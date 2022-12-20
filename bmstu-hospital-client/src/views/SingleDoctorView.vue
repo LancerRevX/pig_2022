@@ -40,7 +40,7 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import { type Doctor, type Speciality, getPatients, createAppointment, getDoctor } from '@/myapi/types'
+import { type Doctor, type Speciality, getPatients, createAppointment, getDoctor } from '@/myapi'
 import * as api from '@/api'
 import { userStore } from '@/userStore'
 

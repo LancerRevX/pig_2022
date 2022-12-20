@@ -49,6 +49,12 @@ export interface Appointment {
      * @memberof Appointment
      */
     datetime: Date;
+    /**
+     * 
+     * @type {number}
+     * @memberof Appointment
+     */
+    status: number;
 }
 
 /**
@@ -58,6 +64,7 @@ export function instanceOfAppointment(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "doctor" in value;
     isInstance = isInstance && "datetime" in value;
+    isInstance = isInstance && "status" in value;
 
     return isInstance;
 }
@@ -77,6 +84,7 @@ export function AppointmentFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'patient': !exists(json, 'patient') ? undefined : json['patient'],
         'doctor': json['doctor'],
         'datetime': (new Date(json['datetime'])),
+        'status': json['status'],
     };
 }
 
@@ -91,6 +99,7 @@ export function AppointmentToJSON(value?: Appointment | null): any {
         
         'doctor': value.doctor,
         'datetime': (value.datetime.toISOString()),
+        'status': value.status,
     };
 }
 

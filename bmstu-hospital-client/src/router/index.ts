@@ -17,7 +17,7 @@ const router = createRouter({
     {
       path: '/doctors',
       name: 'doctors',
-      component: () => import('../views/DoctorsView.vue')
+      component: () => import('@/views/DoctorsView.vue')
     },
     {
       path: '/doctors/:id',
@@ -39,6 +39,18 @@ const router = createRouter({
       path: '/appointments',
       component: () => import('@/views/AppointmentsView.vue')
     },
+    {
+      path: '/manager/edit-doctor/:id',
+      component: () => import('@/views/manager/EditDoctorView.vue')
+    },
+    {
+      path: '/manager/create-doctor',
+      component: () => import('@/views/manager/NewDoctorView.vue')
+    },
+    {
+      path: '/manager/appointments',
+      component: () => import('@/views/manager/AppointmentsView.vue')
+    }
   ]
 })
 

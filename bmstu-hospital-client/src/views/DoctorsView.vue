@@ -22,7 +22,8 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import DoctorCard from '@/components/DoctorCard.vue'
-import { type Doctor, type Speciality, getDoctors, getSpecialities } from '@/myapi/types'
+import { type Doctor, type Speciality, getDoctors, getSpecialities } from '@/myapi'
+import { userStore } from '@/userStore'
 
 export default defineComponent({
   data: () => ({
@@ -31,6 +32,7 @@ export default defineComponent({
     specialityFilter: undefined as Speciality | undefined,
     minCostFilter: undefined as number | undefined,
     maxCostFilter: undefined as number | undefined,
+    user: userStore().user
   }),
   components: {
     DoctorCard

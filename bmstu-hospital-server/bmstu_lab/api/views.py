@@ -7,12 +7,12 @@ import django_filters.rest_framework as filters
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import AnonymousUser
 from datetime import datetime, timezone
-from ..serializers import *
-from ..permissions import *
+from bmstu_lab.serializers import *
+from bmstu_lab.permissions import *
 from django.contrib.auth.models import Group
 
 """
-контроллер для лабы 3 это три файла views/api.py, urls/api.py, serializers.py
+контроллер для лабы 3 это три файла views/urls.py, urls/urls.py, serializers.py
 вместо html страниц сервер в данном случае отправляет данные в формате json
 их удобнее читать компьюетру и также можно сделать мобильное приложение
 """
@@ -89,6 +89,23 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = UserSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, 400)
+        signup_data = serializer.validated_data
+        if User.objects.filter(username=signup_data['username']).exists():
+            return Response(f'Username {signup_data["username"]} is already taken!', 403)
+        new_user = User.objects.create_user(signup_data['username'], None, signup_data['password'])
+        return Response(UserSerializer(new_user, context={'request': request}).data, 201)
+
+
+
+class ManagerViewSet(viewsets.ModelViewSet):
+    permission_classes = [ManagerPermission]
+    queryset = Manager.objects.all()
+    serializer_class = ManagerSerializer
+
 
 class SpecialityViewSet(viewsets.ModelViewSet):
     queryset = Speciality.objects.all()
@@ -149,27 +166,64 @@ class CaseViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class AppointmentFilterSet(filters.FilterSet):
+    datetime_after = filters.DateTimeFilter(field_name='datetime', lookup_expr='gte')
+    datetime_before = filters.DateTimeFilter(field_name='datetime', lookup_expr='lte')
+
+    class Meta:
+        model = Appointment
+        fields = ['datetime', 'status', 'patient', 'doctor']
+
+
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.filter(datetime__gt=datetime.now())
     serializer_class = AppointmentSerializer
     permission_classes = [AppointmentPermission]
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = AppointmentFilterSet
 
     def get_queryset(self):
         user = self.request.user
-        if user.groups.filter(name='patients').exists():
-            queryset = Appointment.objects.filter(patient=user.patient)
-        else:
+        if hasattr(user, 'manager'):
             queryset = Appointment.objects.all()
-        queryset = queryset.filter(datetime__gt=datetime.now()).order_by('-datetime')
+        elif hasattr(user, 'doctor'):
+            queryset = Appointment.objects.filter(
+                doctor=user.doctor,
+                datetime__gt=datetime.now())
+        elif hasattr(user, 'patient'):
+            queryset = Appointment.objects.filter(
+                patient=user.patient,
+                datetime__gt=datetime.now())
+        else:
+            queryset = Appointment.objects.none()
+        queryset = queryset.order_by('-datetime')
         return queryset
 
     def create(self, request, *args, **kwargs):
         serializer = AppointmentSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response(status=400)
+            return Response(serializer.errors, 400)
+        user = request.user
+        if not hasattr(user, 'patient'):
+            return Response('Only patients can make appointments!', 403)
         doctor = serializer.validated_data['doctor']
-        patient = request.user.patient
+        patient = user.patient
         appointment = doctor.make_appointment(patient, serializer.validated_data['datetime'])
         if not appointment:
-            return Response(status=416)
+            return Response('Can\'t make appointment at the chosen time!', 416)
         return Response(status=200, data=AppointmentSerializer(appointment, context={'request': request}).data)
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        if hasattr(user, 'manager'):
+            return super().destroy(request, *args, **kwargs)
+        elif hasattr(user, 'patient'):
+            appointment = self.get_object()
+            appointment.status = Appointment.CANCELLED
+            appointment.save()
+            return Response('Successfully cancelled appointment', 200)
+
+
+class AppointmentStatusesView(views.APIView):
+    def get(self, request: Request):
+        return Response(Appointment.statusChoices, 200)

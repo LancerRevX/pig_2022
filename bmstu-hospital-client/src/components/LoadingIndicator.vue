@@ -9,7 +9,10 @@
     <span v-else-if="(dataStatus == DataStatus.Error)" class="error">
       Ошибка загрузки данных! Подробности в консоли.
     </span>
-    <span v-else-if="((dataStatus == DataStatus.Ready) && dataArray.length == 0)">
+    <span v-else-if="dataStatus == DataStatus.NotFound">
+      Данные не найдены!
+    </span>
+    <span v-else-if="(dataArray && (dataStatus == DataStatus.Ready) && dataArray.length == 0)">
       Пусто!
     </span>
   </div>
@@ -31,7 +34,7 @@ export default defineComponent({
     },
     dataArray: {
       type: Array as PropType<any[]>,
-      required: true
+      required: false
     }
   }
 })

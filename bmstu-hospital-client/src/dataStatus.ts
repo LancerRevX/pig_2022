@@ -2,7 +2,8 @@ export enum DataStatus {
     Loading,
     Ready,
     Forbidden,
-    Error
+    Error,
+    NotFound
 }
 
 export type DataStatusStore = {
