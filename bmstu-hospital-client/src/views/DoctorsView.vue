@@ -3,7 +3,7 @@
     <h2>Список врачей</h2>
     <span>Специальность</span>
     <select v-model="specialityFilter">
-      <option value="undefined">Любая</option>
+      <option :value="undefined">Любая</option>
       <option v-for="speciality in specialities" :key="speciality.id" :value="speciality">
         {{ speciality.name }}
       </option>
@@ -71,5 +71,18 @@ export default defineComponent({
   flex-direction: row;
   flex-wrap: wrap;
   gap: 1em;
+}
+
+@media (max-width: 480px) {
+  .doctors-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .doctors-cards {
+    margin-top: 16px;
+    justify-content: center;
+  }
 }
 </style>

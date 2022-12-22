@@ -22,7 +22,7 @@ export default defineComponent({
 <template>
   <header>
     <h1>Моя больница</h1>
-
+    <div class="spacer"></div>
     <UserCard></UserCard>
 
     <nav> 
@@ -44,11 +44,10 @@ export default defineComponent({
 </template>
 
 <style scoped>
-
 header {
   margin-bottom: 1rem;
   display: grid;
-  grid-template: 1fr auto / 1fr auto;
+  grid-template: 1fr auto / auto 1fr auto;
   row-gap: 1em;
 }
 
@@ -73,5 +72,20 @@ nav a {
 nav a.router-link-active {
   background-color: black;
   color: white;
+}
+
+@media (max-width: 480px) {
+  header {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    gap: 0;
+  }
+
+  nav {
+    display: flex;
+    flex-direction: column;
+    margin-top: 16px;
+  }
 }
 </style>

@@ -1,24 +1,10 @@
-import {
-  SpecialitiesApi, DoctorsApi, AppointmentsApi, PatientsApi, CasesApi,
-  type Doctor as RawDoctor,
-  type DoctorsListRequest,
-  type Speciality as RawSpeciality,
-  type Patient as RawPatient,
-  type PatientsListRequest,
-  type Appointment as RawAppointment,
-  type Case as RawCase,
-  Configuration, type ConfigurationParameters,
-  ResponseError,
-WardsApi
-} from "../api"
-
 import { type Patient, getPatient } from "./patient"
 import { type Doctor, getDoctor } from "./doctor"
 import {type Ward, getWard} from './ward'
 
 import {requestInit, SERVER} from './types'
 import {
-  ForbiddenError, UnknownError, BadRequest, NotFoundError
+  ForbiddenError, UnknownError, BadRequest, NotFoundError, ServerError
 } from './errors'
 import { getCsrfToken } from "@/csrf"
 
@@ -33,32 +19,40 @@ export type Case = {
   active: boolean
 }
 
-let casesApi = new CasesApi()
-
 export async function getCases(): Promise<Case[]> {
-  try {
-    let rawCases = await casesApi.casesList(requestInit())
+  let url = new URL(SERVER + 'cases/')
+  let response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCsrfToken() as string,
+    }
+  })
+  if (response.status == 200) {
+    let json = await response.json()
     let cases: Case[] = []
-    for (let rawCase of rawCases) {
+    for (let rawCase of json) {
       cases.push(await caseFromRaw(rawCase))
     }
     return cases
-  } catch (error) {
-    if (error instanceof ResponseError && error.response.status == 403) {
+  }
+  switch (response.status) {
+    case 403:
       throw new ForbiddenError
-    } else {
-      throw error
-    }
+    case 500:
+      throw new ServerError
+    default:
+      throw new UnknownError
   }
 }
 
-async function caseFromRaw(rawCase: RawCase): Promise<Case> {
+async function caseFromRaw(rawCase: any): Promise<Case> {
   let case_: Case = {
     id: rawCase.id as number,
     patient: await getPatient(rawCase.patient),
     doctor: await getDoctor(rawCase.doctor, false),
-    startDate: rawCase.startDate,
-    endDate: rawCase.endDate as Date | null,
+    startDate: rawCase.start_date,
+    endDate: rawCase.end_date as Date | null,
     wardNumber: (await getWard(rawCase.ward as number)).number,
     description: rawCase.description,
     active: rawCase.active as boolean

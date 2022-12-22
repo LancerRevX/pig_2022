@@ -21,3 +21,9 @@ table {
 table.inner-table {
   border-style: hidden;
 }
+
+@media (max-width: 480px) {
+  h1, h2 {
+    text-align: center;
+  }
+}

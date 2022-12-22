@@ -1,16 +1,8 @@
-import {
-  DoctorsApi,
-  type Doctor as RawDoctor,
-  type DoctorsListRequest,
-  ResponseError,
-WardsApi
-} from "../api"
-
 import {type Speciality, getSpeciality} from "./speciality"
 import type {User} from './user'
 import {requestInit, SERVER} from './types'
 import {
-  ForbiddenError, UnknownError, BadRequest, NotFoundError
+  ForbiddenError, UnknownError, BadRequest, NotFoundError, ServerError
 } from './errors'
 import { getCsrfToken } from "@/csrf"
 
@@ -34,35 +26,57 @@ export type DoctorsFilter = {
   userId?: number
 }
 
-let doctorsApi = new DoctorsApi()
-
 export async function getDoctors(filter?: DoctorsFilter, specialityDoctorsList = false): Promise<Doctor[]> {
-  // let doctorsApi = new DoctorsApi(new Configuration(getConfig()))
-  try {
-    let doctorsListRequest: DoctorsListRequest = {
-      speciality: filter?.speciality?.id ? String(filter.speciality.id) : undefined,
-      minCost: filter?.minCost,
-      maxCost: filter?.maxCost,
-      user: filter?.userId ? String(filter.userId) : undefined
+  let url = new URL(SERVER + 'doctors/')
+  filter?.speciality && url.searchParams.append('speciality', String(filter.speciality.id))
+  filter?.userId && url.searchParams.append('user', String(filter.userId))
+  filter?.minCost && url.searchParams.append('min_cost', String(filter.minCost))
+  filter?.maxCost && url.searchParams.append('max_cost', String(filter.maxCost))
+  let response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCsrfToken() as string,
     }
-    let rawDoctors = await doctorsApi.doctorsList(doctorsListRequest, requestInit())
+  })
+  if (response.status == 200) {
+    let json = await response.json()
     let doctors: Doctor[] = []
-    for (let rawDoctor of rawDoctors) {
+    for (let rawDoctor of json) {
       doctors.push(await doctorFromRaw(rawDoctor, specialityDoctorsList))
     }
     return doctors
-  } catch (error) {
-    if (error instanceof ResponseError && error.response.status == 403) {
+  }
+  switch (response.status) {
+    case 403:
       throw new ForbiddenError
-    } else {
-      throw error
-    }
+    case 500:
+      throw new ServerError
+    default:
+      throw new UnknownError
   }
 }
 
 export async function getDoctor(id: number, specialityDoctorsList: boolean): Promise<Doctor> {
-  let rawDoctor = await doctorsApi.doctorsRead({id})
-  return doctorFromRaw(rawDoctor, specialityDoctorsList)
+  let response = await fetch(SERVER + 'doctors/' + String(id) + '/', {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCsrfToken() as string,
+    }
+  })
+  if (response.status == 200) {
+    let json = await response.json()
+    return await doctorFromRaw(json, specialityDoctorsList)
+  }
+  switch (response.status) {
+    case 403:
+      throw new ForbiddenError
+    case 500:
+      throw new ServerError
+    default:
+      throw new UnknownError
+  }
 }
 
 export async function updateDoctor(doctor: Doctor) {
@@ -145,19 +159,19 @@ export async function deleteDoctor(doctor: Doctor) {
   }
 }
 
-export async function doctorFromRaw(rawDoctor: RawDoctor, specialityDoctorsList: boolean): Promise<Doctor> {
+export async function doctorFromRaw(rawDoctor: any, specialityDoctorsList: boolean): Promise<Doctor> {
   let speciality = await getSpeciality(rawDoctor.speciality, specialityDoctorsList)
   speciality.doctors = speciality.doctors.filter(doctor => doctor.id != rawDoctor.id)
   return {
     id: rawDoctor.id as number,
-    name: rawDoctor.fullName as string,
-    firstName: rawDoctor.firstName,
-    lastName: rawDoctor.lastName,
+    name: rawDoctor.full_name as string,
+    firstName: rawDoctor.first_name,
+    lastName: rawDoctor.last_name,
     patronymic: rawDoctor.patronymic,
     speciality,
     photo: rawDoctor.photo as string,
     gender: rawDoctor.gender,
-    work_record: rawDoctor.workRecord as number,
+    work_record: rawDoctor.work_record as number,
     cost: rawDoctor.cost
   }
 }

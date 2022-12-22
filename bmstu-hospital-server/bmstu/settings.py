@@ -24,6 +24,9 @@ SECRET_KEY = 'django-insecure-8lb*h-x&g)czc_zh=gd&9i3d$%86+xh4(tzz@-19ghc3x2oo%p
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type('application/javascript', '.js', True)
 
 USE_TZ = True
 
@@ -61,7 +64,10 @@ ROOT_URLCONF = 'bmstu.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates/'],
+        'DIRS': [
+            'templates/',
+            '../bmstu-hospital-client/dist/'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,10 +132,11 @@ REST_FRAMEWORK = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
+STATIC_ROOT = './bmstu_lab/static/'
 STATIC_URL = 'static/'
-
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    './bmstu_lab/images',
+    '../bmstu-hospital-client/dist/'
 ]
 
 # Default primary key field type
@@ -137,5 +144,5 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:5173', 'http://192.168.1.72']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:5173', 'http://192.168.1.72:5173']
 CSRF_COOKIE_SAMESITE = 'Lax'

@@ -1,12 +1,12 @@
 <template>
-  <div v-if="!user" class="user-card">
-    <span>Анонимный пользователь</span>
+  <div v-if="!user" class="user-card-box unauthorized">
+    <span class="username">Анонимный пользователь</span>
     <input type="text" v-model="username" placeholder="Username">
     <input type="password" v-model="password" placeholder="Password">
     <input @click="login()" type="submit" value="Войти в систему">
-    <RouterLink to="/signup"><button>Регистрация</button></RouterLink>
+    <RouterLink to="/signup"><input type="button" value="Регистрация"></RouterLink>
   </div>
-  <div v-else class="user-card">
+  <div v-else class="user-card-box logged-in">
     <span>{{ userName }} - {{ userRole }}&nbsp;</span>
     <button @click="logout()">Выйти</button>
   </div>
@@ -82,5 +82,44 @@ export default defineComponent({
 </script>
 
 <style>
+.user-card-box.unauthorized {
+  display: flex;
+  align-items: center;
+}
 
+.user-card-box.unauthorized .username {
+  grid-column: span 2;
+}
+
+.user-card-box.unauthorized input[type=text],
+.user-card-box.unauthorized input[type=password] {
+  grid-column: span 2;
+}
+
+.user-card-box.unauthorized input[type=button],
+.user-card-box.unauthorized input[type=submit] {
+  grid-column: auto;
+}
+
+@media (max-width: 480px) {
+  .user-card-box.unauthorized {
+    display: grid;
+    grid-template: repeat(4, auto) / 1fr 1fr;
+  }
+
+  .user-card-box.unauthorized .username {
+    grid-column: span 2;
+  }
+  
+  .user-card-box.unauthorized input[type=text],
+  .user-card-box.unauthorized input[type=password] {
+    grid-column: span 2;
+  }
+
+  .user-card-box.unauthorized input[type=button],
+  .user-card-box.unauthorized input[type=submit] {
+    grid-column: auto;
+    width: 100%;
+  }
+}
 </style>

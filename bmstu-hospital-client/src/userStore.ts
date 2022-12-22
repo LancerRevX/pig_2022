@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import type {User} from '@/myapi/types'
+import type {User} from '@/myapi'
 
 export let userStore = defineStore('user', {
     state: () => ({

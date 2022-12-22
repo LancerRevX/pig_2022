@@ -48,31 +48,38 @@ export type AppointmentFilter = {
 }
 
 export async function getAppointments(filter?: AppointmentFilter): Promise<Appointment[]> {
-  try {
-    let rawAppointments = await appointmentsApi.appointmentsList(
-      {
-        doctor: filter?.doctor ? String(filter.doctor.id) : undefined,
-        patient: filter?.patient ? String(filter.patient.id) : undefined,
-        status: filter?.status ? String(filter.status.value) : undefined,
-        datetimeAfter: filter?.datetimeAfter ? filter.datetimeAfter.toISOString() : undefined,
-        datetimeBefore: filter?.datetimeBefore ? filter.datetimeBefore.toISOString() : undefined,
-      },
-      requestInit())
+  let url = new URL(SERVER + 'appointments/')
+  filter?.doctor && url.searchParams.append('doctor', String(filter.doctor.id))
+  filter?.patient && url.searchParams.append('patient', String(filter.patient.id))
+  filter?.status && url.searchParams.append('status', String(filter.status.value))
+  filter?.datetimeAfter && url.searchParams.append('datetime_after', filter.datetimeAfter.toISOString())
+  filter?.datetimeBefore && url.searchParams.append('datetime_before', filter.datetimeBefore.toISOString())
+  let response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCsrfToken() as string,
+    }
+  })
+  if (response.status == 200) {
+    let json = await response.json()
     let appointments: Appointment[] = []
-    for (let rawAppointment of rawAppointments) {
+    for (let rawAppointment of json) {
       appointments.push(await appointmentFromRaw(rawAppointment))
     }
     return appointments
-  } catch (error) {
-    if (error instanceof ResponseError && error.response.status == 403) {
+  }
+  switch (response.status) {
+    case 403:
       throw new ForbiddenError
-    } else {
-      throw error
-    }
+    case 500:
+      throw new ServerError
+    default:
+      throw new UnknownError
   }
 }
 
-export async function appointmentFromRaw(rawAppointment: RawAppointment): Promise<Appointment> {
+export async function appointmentFromRaw(rawAppointment: any): Promise<Appointment> {
   let statuses = await getAppointmentStatuses()
   return {
     id: rawAppointment.id as number,

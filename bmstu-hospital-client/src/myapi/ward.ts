@@ -16,7 +16,7 @@ import { type Patient, getPatient } from "./patient"
 
 import {requestInit, SERVER} from './types'
 import {
-  ForbiddenError, UnknownError, BadRequest, NotFoundError
+  ForbiddenError, UnknownError, BadRequest, NotFoundError, ServerError
 } from './errors'
 import { getCsrfToken } from "@/csrf"
 
@@ -29,19 +29,29 @@ export type Ward = {
 let wardsApi = new WardsApi()
 
 export async function getWards(): Promise<Ward[]> {
-  try {
-    let rawWards = await wardsApi.wardsList(requestInit())
+  let url = new URL(SERVER + 'wards/')
+  let response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCsrfToken() as string,
+    }
+  })
+  if (response.status == 200) {
+    let json = await response.json()
     let wards: Ward[] = []
-    for (let rawWard of rawWards) {
+    for (let rawWard of json) {
       wards.push(await wardFromRaw(rawWard))
     }
     return wards
-  } catch (error) {
-    if (error instanceof ResponseError && error.response.status == 403) {
+  }
+  switch (response.status) {
+    case 403:
       throw new ForbiddenError
-    } else {
-      throw error
-    }
+    case 500:
+      throw new ServerError
+    default:
+      throw new UnknownError
   }
 }
 

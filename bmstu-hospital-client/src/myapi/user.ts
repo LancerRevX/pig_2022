@@ -20,7 +20,7 @@ export type User = {
 export async function login(username?: string, password?: string): Promise<User | null> {
   let response: Response
   if (username !== undefined && password !== undefined) {
-    response = await fetch('http://127.0.0.1:8000/api/login/', {
+    response = await fetch(SERVER + 'login/', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -30,9 +30,13 @@ export async function login(username?: string, password?: string): Promise<User 
       body: JSON.stringify({username, password})
     })
   } else {
-    response = await fetch('http://127.0.0.1:8000/api/login/', {
+    response = await fetch(SERVER + 'login/', {
       method: 'GET',
-      ...requestInit()
+      credentials: 'include',
+      headers: {
+        'X-CSRFToken': getCsrfToken() as string,
+        'Content-Type': 'application/json'
+      },
     })
   }
   if (response.status == 200) {
